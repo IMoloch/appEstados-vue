@@ -5,17 +5,18 @@
       <p v-if="subTitle" class="py-4">{{ subTitle }}</p>
 
       <div class="modal-action flex flex-col">
-        <form method="dialog" @submit.prevent="submitValue">
+        <form @submit.prevent="submitValue">
           <input
             ref="inputRef"
             type="text"
             :placeholder="placeholder ?? 'Ingrese un valor'"
             class="input input-bordered input-primary w-full flex-1"
             v-model="inputValue"
+            @keypress.enter="submitValue"
           />
           <!-- if there is a button in form, it will close the modal -->
           <div class="flex justify-end mt-5">
-            <button @click="$emit('close')" class="btn mr-4">Close</button>
+            <button @click.prevent="closeModal" class="btn mr-4">Close</button>
             <button type="submit" class="btn btn-primary">Aceptar</button>
           </div>
         </form>
@@ -37,22 +38,20 @@ interface Props {
   title: string;
   subTitle?: string;
   placeholder?: string;
+  previousValue?: string;
 }
 
-//defineProps<Props>();
 const props = defineProps<Props>();
-// Para activar el focus cuando cargue el modal
-  /*watch(() => props.open, (newValue) => {
-    if (newValue && inputRef.value) {
-      inputRef.value.focus();
-    }
-  });*/
-  watch(props, ({open})=> {
-    if (open) {
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (isOpen) {
       inputRef.value?.focus();
+      inputValue.value = props.previousValue ?? '';
     }
-  });
-  
+  },
+);
+
 const emits = defineEmits<{
   close: [void];
   value: [text: string];
@@ -68,8 +67,11 @@ const submitValue = () => {
   }
 
   emits('value', inputValue.value.trim());
-  emits('close');
-
   inputValue.value = '';
+};
+
+const closeModal = () => {
+  inputValue.value = '';
+  emits('close');
 };
 </script>
